@@ -11,10 +11,10 @@ It is built with modern HTML5, responsive CSS, and [Material Web Components](htt
 ## 📸 Screenshots
 
 ### Desktop
-![Desktop Screenshot](screenshots/desktop.png)
+![Desktop Screenshot](desktop.png)
 
 ### Mobile
-![Mobile Screenshot](screenshots/mobile.png)
+![Mobile Screenshot](mobile.png)
 
 ---
 
