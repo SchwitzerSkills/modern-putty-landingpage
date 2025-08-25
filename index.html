@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PuTTY · Fast, Free SSH Client</title>
+  <meta name="description" content="PuTTY is a free SSH client for Windows and Unix with an xterm-style terminal emulator. Maintained by Simon Tatham." />
+  <meta property="og:title" content="PuTTY" />
+  <meta property="og:description" content="Free software SSH client for Windows and also Unix, including an xterm-style terminal emulator." />
+  <meta property="og:url" content="https://putty.software/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://putty.software/images/putty-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/putty-180.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/putty-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/putty-16.png" />
+  <link rel="shortcut icon" href="https://putty.software/favicon.ico" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@200..700" rel="stylesheet" />
+
+  <!-- Material Web (official Material UI for Web Components) -->
+  <script type="importmap">{ "imports": { "@material/web/": "https://esm.run/@material/web/" } }</script>
+  <script type="module">
+    import '@material/web/all.js';
+    import { styles as typescaleStyles } from '@material/web/typography/md-typescale-styles.js';
+    document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+  </script>
+
+  <style>
+    :root {
+      /* Seeded Material theme (dark & light derive from this). */
+      --seed: 218 89% 56%; /* teal-ish */
+
+      /* Light tokens */
+      --light-bg: hsl(0 0% 99%);
+      --light-on-bg: hsl(240 6% 10%);
+      --light-surface: hsl(0 0% 100%);
+      --light-outline: hsl(240 5% 84%);
+      --light-primary: hsl(var(--seed));
+      --light-on-primary: white;
+      --light-secondary: hsl(219 13% 40%);
+
+      /* Dark tokens */
+      --dark-bg: hsl(240 6% 7%);
+      --dark-on-bg: hsl(0 0% 98%);
+      --dark-surface: hsl(240 7% 10%);
+      --dark-outline: hsl(240 6% 26%);
+      --dark-primary: hsl(215 100% 70%);
+      --dark-on-primary: hsl(240 6% 7%);
+      --dark-secondary: hsl(210 12% 72%);
+
+      /* Layout */
+      --container: 1200px;
+      --radius-xl: 24px;
+    }
+
+    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      background: var(--dark-bg);
+      color: var(--dark-on-bg);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      min-height: 100dvh;
+    }
+    html[data-theme="light"] body {
+      background: var(--light-bg);
+      color: var(--light-on-bg);
+    }
+
+    /* Material color tokens bridge (helps components blend in). */
+    md-top-app-bar, md-card, md-filled-button, md-outlined-button, md-text-button, md-icon-button, md-menu, md-navigation-drawer {
+      --md-sys-color-primary: var(--dark-primary);
+      --md-sys-color-on-primary: var(--dark-on-primary);
+      --md-sys-color-surface: var(--dark-surface);
+      --md-sys-color-on-surface: var(--dark-on-bg);
+      --md-sys-color-outline: var(--dark-outline);
+    }
+    html[data-theme="light"] md-top-app-bar,
+    html[data-theme="light"] md-card,
+    html[data-theme="light"] md-filled-button,
+    html[data-theme="light"] md-outlined-button,
+    html[data-theme="light"] md-text-button,
+    html[data-theme="light"] md-icon-button,
+    html[data-theme="light"] md-menu,
+    html[data-theme="light"] md-navigation-drawer {
+      --md-sys-color-primary: var(--light-primary);
+      --md-sys-color-on-primary: var(--light-on-primary);
+      --md-sys-color-surface: var(--light-surface);
+      --md-sys-color-on-surface: var(--light-on-bg);
+      --md-sys-color-outline: var(--light-outline);
+    }
+
+    .container { width: min(100% - 32px, var(--container)); margin-inline: auto; }
+
+    /* Skip link */
+    .skip { position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
+    .skip:focus { position:static; width:auto; height:auto; padding:.5rem 1rem; background:#000; color:#fff; z-index:9999; }
+
+    /* Top App Bar */
+    header md-top-app-bar { position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(140%) blur(6px); display: flex; }
+    .brand { display: inline-flex; align-items: center; gap: .75rem; }
+    .brand img { height: 28px; width: 28px; }
+    .brand span { font-weight: 700; letter-spacing: .2px; }
+
+    /* Secondary nav row */
+    .topnav {
+      border-bottom: 1px solid var(--dark-outline);
+      background: color-mix(in oklab, var(--dark-surface) 80%, transparent);
+    }
+    html[data-theme="light"] .topnav { border-bottom-color: var(--light-outline); background: color-mix(in oklab, var(--light-surface) 92%, transparent); }
+    .topnav .navwrap { display:flex; align-items:center; gap:.5rem; padding:.35rem 0; }
+    .links { display:flex; gap:.25rem; margin-left:auto; }
+    .links md-text-button { --md-ref-typeface-plain: inherit; }
+    .links a { text-decoration:none; }
+    .desktop-only { display:flex; }
+    .mobile-only { display:none; }
+
+    /* Hero */
+    .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; padding: 48px 0; }
+    .hero h1 { font-size: clamp(2.2rem, 3vw + 1rem, 3.2rem); margin: 0 0 .25em; }
+    .hero p.lead { font-size: 1.125rem; opacity: .85; margin: 0 0 1.5rem; }
+    .hero .actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .hero-visual { border-radius: var(--radius-xl); overflow: clip; background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,0)); padding: 8px; }
+    .hero-visual img { width: 100%; height: auto; display: block; border-radius: calc(var(--radius-xl) - 8px); box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+
+    /* Features */
+    .features { padding: 8px 0 56px; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    md-elevated-card { height: 100%; }
+    .card-content { padding: 16px 16px 20px; display: grid; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; }
+    .chip .material-symbols-outlined { font-variation-settings: 'OPSZ' 24, 'wght' 500; }
+
+    /* Gallery */
+    .gallery { padding: 56px 0; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .shot { border-radius: var(--radius-xl); overflow: clip; background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,0)); padding: 8px; }
+    .shot img { width: 100%; height: auto; border-radius: calc(var(--radius-xl) - 8px); box-shadow: 0 8px 30px rgba(0,0,0,.35); display: block; }
+
+    /* Download section */
+    .download { padding: 8px 0 64px; }
+    .download-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; }
+    .download .card-content p { margin:0; opacity:.9; }
+
+    a.inline { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+    footer { border-top: 1px solid var(--dark-outline); padding: 24px 0; font-size: .95rem; opacity: .9; }
+    html[data-theme="light"] footer { border-top-color: var(--light-outline); }
+
+    .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: 400; font-style: normal; font-size: 1.25rem; line-height: 1; display: inline-block; }
+
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .download-grid { grid-template-columns: 1fr; }
+      .desktop-only { display:none; }
+      .mobile-only { display:flex; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <!-- Side Drawer for mobile nav -->
+  <md-navigation-drawer id="drawer" type="modal" hidden>
+    <nav style="padding: 8px 8px 16px">
+      <md-list>
+        <md-list-item type="link" href="#features"><span slot="start" class="material-symbols-outlined">star</span>Features</md-list-item>
+        <md-list-item type="link" href="#gallery"><span slot="start" class="material-symbols-outlined">image</span>Gallery</md-list-item>
+        <md-list-item type="link" href="#download"><span slot="start" class="material-symbols-outlined">download</span>Download</md-list-item>
+        <md-list-item type="link" href="https://www.chiark.greenend.org.uk/~sgtatham/putty/" target="_blank" rel="noopener noreferrer"><span slot="start" class="material-symbols-outlined">public</span>Main website</md-list-item>
+      </md-list>
+    </nav>
+  </md-navigation-drawer>
+
+  <!-- Top App Bar -->
+
+
+  <!-- Secondary nav row (desktop) -->
+  <div class="topnav">
+    <div class="container navwrap">
+        <header>
+            <md-top-app-bar>
+            <md-icon-button id="navBtn" slot="navigationIcon" class="mobile-only" aria-label="Menu">
+                <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+            </md-icon-button>
+            <div slot="title" class="brand container">
+                <img src="/images/putty.svg" alt="PuTTY logo" />
+                <span>PuTTY</span>
+                <md-icon-button id="themeToggle" slot="actionItems" aria-label="Toggle theme">
+                <span class="material-symbols-outlined" aria-hidden="true">dark_mode</span>
+            </md-icon-button>
+            <md-icon-button slot="actionItems" aria-label="Main website" onclick="window.open('https://www.chiark.greenend.org.uk/~sgtatham/putty/', '_blank','noopener')">
+                <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+            </md-icon-button>
+            </md-top-app-bar>
+            </div>
+            
+        </header>
+      <div class="brand desktop-only" aria-hidden="true" style="opacity:.8">
+        <span class="material-symbols-outlined">terminal</span>
+        <span>SSH Client</span>
+      </div>
+      <div class="links">
+        <a href="#features" class="desktop-only"><md-text-button>Features</md-text-button></a>
+        <a href="#gallery" class="desktop-only"><md-text-button>Gallery</md-text-button></a>
+        <a href="#download" class="desktop-only"><md-text-button>Download</md-text-button></a>
+        <md-text-button id="downloadMenuBtn" class="desktop-only">
+          <span class="material-symbols-outlined" slot="icon">install_desktop</span>
+          Quick download
+        </md-text-button>
+        <md-menu id="downloadMenu" anchor="downloadMenuBtn" anchor-corner="end-start" positioning="popover">
+          <md-menu-item type="link" href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html" target="_blank" rel="noopener">
+            <div slot="headline">Latest release</div>
+            <div slot="supporting-text">All installers & packages</div>
+          </md-menu-item>
+          <md-menu-item type="link" href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html#checksums" target="_blank" rel="noopener">
+            <div slot="headline">Checksums & signatures</div>
+            <div slot="supporting-text">Verify download integrity</div>
+          </md-menu-item>
+        </md-menu>
+      </div>
+    </div>
+  </div>
+
+  <main id="main" class="container">
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <h1 id="hero-title">A trusted SSH client for Windows & Unix</h1>
+        <p class="lead">PuTTY ships a fast <code>xterm</code>-style terminal emulator, SSH, Telnet and serial clients—lightweight, reliable, and open-source since 1999.</p>
+        <div class="actions">
+          <md-filled-button href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html" target="_blank" rel="noopener">
+            <span class="material-symbols-outlined" slot="icon">download</span>
+            Get latest version
+          </md-filled-button>
+          <md-outlined-button href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html#checksums" target="_blank" rel="noopener">
+            <span class="material-symbols-outlined" slot="icon">verified</span>
+            Verify checksums
+          </md-outlined-button>
+          <md-outlined-button href="landing-page-faq.html">
+            <span class="material-symbols-outlined" slot="icon">help</span>
+            About this page
+          </md-outlined-button>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <img src="/images/putty.svg" alt="PuTTY logo large" />
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="features" aria-labelledby="features-title">
+      <h2 id="features-title" style="margin: 0 0 .5rem">Why PuTTY?</h2>
+      <p style="margin: 0 0 1.25rem; opacity:.9">A few reasons developers and admins keep it in their toolkit.</p>
+      <div class="features-grid">
+        <md-elevated-card>
+          <div class="card-content">
+            <div class="chip"><span class="material-symbols-outlined">terminal</span> Terminal & SSH</div>
+            <h3 style="margin:.25rem 0 .25rem">Fast & lightweight</h3>
+            <p style="margin:0; opacity:.9">Connect over SSH, Telnet, rlogin or serial. Start sessions quickly with a minimal footprint.</p>
+          </div>
+        </md-elevated-card>
+        <md-elevated-card>
+          <div class="card-content">
+            <div class="chip"><span class="material-symbols-outlined">lock</span> Security</div>
+            <h3 style="margin:.25rem 0 .25rem">Open-source you can inspect</h3>
+            <p style="margin:0; opacity:.9">Actively maintained by <a class="inline" href="https://www.chiark.greenend.org.uk/~sgtatham/" target="_blank" rel="noopener">Simon Tatham</a> and contributors for decades.</p>
+          </div>
+        </md-elevated-card>
+        <md-elevated-card>
+          <div class="card-content">
+            <div class="chip"><span class="material-symbols-outlined">settings</span> Configurability</div>
+            <h3 style="margin:.25rem 0 .25rem">Tweak everything</h3>
+            <p style="margin:0; opacity:.9">From terminal behavior to key exchange, bundles of options for power users.</p>
+          </div>
+        </md-elevated-card>
+      </div>
+    </section>
+
+    <!-- Gallery / Screenshots -->
+    <section id="gallery" class="gallery" aria-labelledby="gallery-title">
+      <h2 id="gallery-title" style="margin: 0 0 .5rem">A look at PuTTY</h2>
+      <p style="margin: 0 0 1.25rem; opacity:.9">Configuration and terminal in action.</p>
+      <div class="gallery-grid">
+        <div class="shot"><img src="https://www.thomas-krenn.com/de/wikiDE/images/3/35/Putty-1.png" alt="PuTTY configuration window" loading="lazy" /></div>
+        <div class="shot"><img src="https://s3.amazonaws.com/img.bobpusateri.com/bc/2018/03/PuTTY_small.png" alt="PuTTY terminal session" loading="lazy" /></div>
+      </div>
+    </section>
+
+    <!-- Downloads -->
+    <section id="download" class="download" aria-labelledby="download-title">
+      <h2 id="download-title" style="margin: 0 0 .5rem">Download PuTTY</h2>
+      <p style="margin: 0 0 1.25rem; opacity:.9">Always get PuTTY from the official site, and verify checksums if possible.</p>
+      <div class="download-grid">
+        <md-elevated-card>
+          <div class="card-content">
+            <div class="chip"><span class="material-symbols-outlined">install_desktop</span> Windows</div>
+            <h3 style="margin:.25rem 0 .25rem">Latest release</h3>
+            <p>Installers and MSI packages via official download page.</p>
+            <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap">
+              <md-filled-button href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html" target="_blank" rel="noopener">
+                <span class="material-symbols-outlined" slot="icon">download</span>
+                Go to downloads
+              </md-filled-button>
+            </div>
+          </div>
+        </md-elevated-card>
+        <md-elevated-card>
+          <div class="card-content">
+            <div class="chip"><span class="material-symbols-outlined">code</span> Source</div>
+            <h3 style="margin:.25rem 0 .25rem">Get the source</h3>
+            <p>Review and build from source. Instructions on the official site.</p>
+            <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap">
+              <md-outlined-button href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html#source" target="_blank" rel="noopener">
+                <span class="material-symbols-outlined" slot="icon">terminal</span>
+                Source & build
+              </md-outlined-button>
+            </div>
+          </div>
+        </md-elevated-card>
+        <md-elevated-card>
+          <div class="card-content">
+            <div class="chip"><span class="material-symbols-outlined">verified</span> Verify</div>
+            <h3 style="margin:.25rem 0 .25rem">Checksums & signatures</h3>
+            <p>SHA and GPG signatures to verify file integrity and authenticity.</p>
+            <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap">
+              <md-outlined-button href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html#checksums" target="_blank" rel="noopener">
+                <span class="material-symbols-outlined" slot="icon">how_to_reg</span>
+                Verify files
+              </md-outlined-button>
+            </div>
+          </div>
+        </md-elevated-card>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p style="margin:.25rem 0 .5rem">PuTTY is free software. Copyright © the PuTTY team. Primary author: Simon Tatham.</p>
+      <p style="margin:.25rem 0 0">This landing page is a community-friendly front door. Questions? See the <a class="inline" href="landing-page-faq.html">FAQ</a>.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle (respects system, persists preference)
+    (function(){
+      const key = 'theme-preference';
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+      const saved = localStorage.getItem(key);
+      const initial = saved || (prefersDark.matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', initial);
+
+      const btn = document.getElementById('themeToggle');
+      const setIcon = () => {
+        const icon = btn.querySelector('.material-symbols-outlined');
+        icon.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light_mode' : 'dark_mode';
+      };
+      setIcon();
+      btn?.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(key, next);
+        setIcon();
+      });
+      prefersDark.addEventListener?.('change', (e) => {
+        if (!localStorage.getItem(key)) {
+          document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+          setIcon();
+        }
+      });
+    })();
+
+    // Drawer toggle
+    (function(){
+      const drawer = document.getElementById('drawer');
+      const navBtn = document.getElementById('navBtn');
+      const toggle = () => {
+        const open = !drawer.hasAttribute('hidden');
+        if (open) { drawer.setAttribute('hidden',''); drawer.removeAttribute('open'); }
+        else { drawer.removeAttribute('hidden'); drawer.setAttribute('open',''); }
+      };
+      navBtn?.addEventListener('click', toggle);
+      drawer?.addEventListener('click', (e) => {
+        const target = e.target.closest('md-list-item');
+        if (target) toggle();
+      });
+    })();
+
+    // Attach menu to button
+    (function(){
+      const btn = document.getElementById('downloadMenuBtn');
+      const menu = document.getElementById('downloadMenu');
+      btn?.addEventListener('click', () => menu?.show());
+    })();
+  </script>
+</body>
+</html>
