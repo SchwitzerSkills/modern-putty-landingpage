@@ -44,6 +44,6 @@ Dependencies are loaded via [esm.run](https://esm.run/) (Material Web Components
 No build process required. Simply clone and open `index.html`:
 
 ```bash
-git clone https://github.com/<your-user>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/SchwitzerSkills/modern-putty-landingpage.git
+cd modern-putty-landingpage
 open index.html   # or use a local web server
